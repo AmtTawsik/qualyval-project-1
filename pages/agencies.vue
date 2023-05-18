@@ -1,4 +1,5 @@
 <script setup>
+import { ObjectId } from "bson";
 const allAgency = ref([])
 
 const { app } = useMyRealmApp()
@@ -12,6 +13,24 @@ collectionAgency?.find()
         console.log('datais', data)
     })
     .catch(err => console.log(err))
+
+
+const deleteAgency = (id) => {
+    const confirmation = window.confirm('Are you sure you want to delete this user?');
+    const makeItString = ObjectId(id.toString())
+    console.log(confirmation)
+    if (confirmation === true) {
+        collectionAgency
+            .deleteOne({ _id: makeItString })
+            .then(data => {
+                if (data.deletedCount === 1) {
+                    const index = allAgency.value.findIndex((user) => user._id === id);
+                    allAgency.value.splice(index, 1);
+                }
+            })
+            .catch(err => console.log(err))
+    }
+}    
 </script>
 
 <template>
@@ -57,7 +76,7 @@ collectionAgency?.find()
                                                             d="M5.25 5.25a3 3 0 00-3 3v10.5a3 3 0 003 3h10.5a3 3 0 003-3V13.5a.75.75 0 00-1.5 0v5.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5V8.25a1.5 1.5 0 011.5-1.5h5.25a.75.75 0 000-1.5H5.25z" />
                                                     </svg>
                                                 </NuxtLink>
-                                                <button class="py-3 text-red-600" type="button">
+                                                <button @click="deleteAgency(user._id)" class="py-3 text-red-600" type="button">
                                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                                                         fill="currentColor" class="w-6 h-6">
                                                         <path fill-rule="evenodd"

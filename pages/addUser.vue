@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted } from 'vue'
 import { initDropdowns } from 'flowbite'
+import UserList from './userList.vue';
 const { app, Realm } = useMyRealmApp();
 
 onMounted(() => {
@@ -39,6 +40,7 @@ const register = async (e) => {
 		email: email.value,
 	});
 	e.target.reset()
+	navigateTo('/userList')
 };
 
 const name = ref(null);
