@@ -1,26 +1,49 @@
 <script setup>
-import { ObjectId } from "bson";
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
+import { ObjectId } from 'bson'
 import { initDropdowns } from 'flowbite'
 
+const PAGE_SIZE = 2
+const currentPage = ref(1)
+const totalItems = ref(0)
+const totalPages = ref(0)
+const users = ref([])
+const paginatedUsers = ref([])
+
 onMounted(() => {
-    initDropdowns();
+    initDropdowns()
+    getUsers()
 })
 
-const users = ref([])
+const getUsers = () => {
+    const { app } = useMyRealmApp()
+    const mongo = app.currentUser?.mongoClient('mongodb-atlas')
+    const collection = mongo?.db('invoiceProcessor').collection('users')
 
-const { app } = useMyRealmApp()
+    collection
+        .find({email :{$ne: "admin@gmail.com"}})
+        .then(data => {
+            users.value = data
+            totalItems.value = data.length
+            totalPages.value = Math.ceil(totalItems.value / PAGE_SIZE)
+            paginateUsers()
+            console.log(paginatedUsers)
+        })
+}
 
-const mongo = app.currentUser?.mongoClient("mongodb-atlas");
-const collection = mongo?.db("invoiceProcessor").collection("users");
+const paginateUsers = () => {
+    const startIndex = (currentPage.value - 1) * PAGE_SIZE
+    const endIndex = startIndex + PAGE_SIZE
+    paginatedUsers.value = users.value.slice(startIndex, endIndex)
+}
 
-collection?.find()
-    .then(data => {
-        users.value = data
-    })
+const changePage = page => {
+    currentPage.value = page
+    paginateUsers()
+}
 
-const deleteUser = (id) => {
-    const confirmation = window.confirm('Are you sure you want to delete this user?');
+const deleteUser = id => {
+    const confirmation = window.confirm('Are you sure you want to delete this user?')
     const makeItString = ObjectId(id.toString())
     console.log(confirmation)
     if (confirmation === true) {
@@ -28,14 +51,21 @@ const deleteUser = (id) => {
             .deleteOne({ _id: makeItString })
             .then(data => {
                 if (data.deletedCount === 1) {
-                    const index = users.value.findIndex((user) => user._id === id);
-                    users.value.splice(index, 1);
+                    const index = users.value.findIndex(user => user._id === id)
+                    users.value.splice(index, 1)
+                    totalItems.value--
+                    totalPages.value = Math.ceil(totalItems.value / PAGE_SIZE)
+                    paginateUsers()
                 }
             })
             .catch(err => console.log(err))
     }
 }
+
+
+console.log('Dataaaaaissss',paginatedUsers.value)
 </script>
+
 
 <template>
     <NuxtLayout name="header">
@@ -52,8 +82,7 @@ const deleteUser = (id) => {
                     </div>
                 </div>
                 <div class="overflow-x-auto">
-                    <form>
-                        <table v-if="users.length > 0" class="w-full text-sm text-left text-gray-500 ">
+                        <table v-if="paginatedUsers.length > 0" class="w-full text-sm text-left text-gray-500 ">
                             <thead class="text-xs text-gray-700 bg-gray-50">
                                 <tr>
                                     <th scope="col" class="px-4 py-3">Name</th>
@@ -63,8 +92,8 @@ const deleteUser = (id) => {
                                 </tr>
                             </thead>
                             <tbody>
-                                <template v-for="user in users" :key="user._id">
-                                    <tr v-if="user.email !== 'admin@gmail.com'" class="bg-white border-b">
+                                <template v-for="user in paginatedUsers" :key="user._id">
+                                    <tr class="bg-white border-b">
                                         <th scope="row" class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap ">
                                             {{ user.name }}
                                         </th>
@@ -97,7 +126,12 @@ const deleteUser = (id) => {
                                 </template>
                             </tbody>
                         </table>
-                    </form>
+                        <div v-if="totalPages > 1" class="flex justify-center mt-5">
+                            <button v-for="page in totalPages" :key="page" @click="changePage(page)"
+                                :class="['px-4 py-2 mx-1 rounded-lg focus:outline-none', { 'bg-blue-500 text-white': page === currentPage, 'bg-gray-200 text-gray-500': page !== currentPage }]">
+                                {{ page }}
+                            </button>
+                        </div>
                 </div>
             </div>
         </section>
