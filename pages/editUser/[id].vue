@@ -1,5 +1,8 @@
 <script setup>
 import { ObjectId } from 'bson';
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const { app } = useMyRealmApp()
 const route = useRoute()
@@ -64,12 +67,15 @@ const updateData = (event) => {
         });
 }
 
+const goBack = () =>{
+    router.go(-1)
+}
 
 </script>
 
 <template>
     <NuxtLayout name="header">
-        <section class="md:w-6/12 w-11/12 mx-auto my-5 border-2 p-5 rounded-md">
+        <section class="md:w-6/12 w-11/12 mx-auto my-5 md:my-20 border-2 p-5 rounded-md">
             <form @submit.prevent="updateData">
                 <div class="grid gap-6 mb-6 md:grid-cols-2">
                     <div>
@@ -160,8 +166,12 @@ const updateData = (event) => {
                         </ul>
                     </div>
                 </div>
-                <button type="submit"
+                <div>
+                    <button type="button"  @click="goBack"
+                    class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700 mr-2">Cancel</button>
+                    <button type="submit"
                     class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Submit</button>
+                </div>
             </form>
         </section>
     </NuxtLayout>
