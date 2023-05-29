@@ -3,6 +3,11 @@ import { ref, onMounted } from 'vue'
 import { ObjectId } from 'bson'
 import { initDropdowns } from 'flowbite'
 
+
+const { app } = useMyRealmApp()
+const mongo = app.currentUser?.mongoClient('mongodb-atlas')
+const collection = mongo?.db('invoiceProcessor').collection('users')
+
 const PAGE_SIZE = 10
 const currentPage = ref(1)
 const totalItems = ref(0)
@@ -18,10 +23,6 @@ onMounted(() => {
 
 const getUsers = () => {
     loading.value = true
-    const { app } = useMyRealmApp()
-    const mongo = app.currentUser?.mongoClient('mongodb-atlas')
-    const collection = mongo?.db('invoiceProcessor').collection('users')
-
     collection
         .find({ email: { $ne: "admin@gmail.com" } })
         .then(data => {
